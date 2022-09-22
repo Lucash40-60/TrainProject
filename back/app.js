@@ -1,10 +1,18 @@
 const { Client } = require('pg'); 
 const express = require('express'); 
 const bodyParser = require('body-parser');
+const cors = require('cors') ;
 
 const app = express();
 
+var corsOptions = {
+    origin: "http://localhost:8080"
+};
+
+app.use(cors(corsOptions));
+
 app.use(bodyParser.json())
+app.use(express.json()); 
 app.use(
     bodyParser.urlencoded({
       extended: true,
@@ -21,7 +29,16 @@ const client = new Client({
 
 client.connect(); 
 
-// client.query(`CREATE TABLE utilisateurs (id SERIAL PRIMARY KEY , nom Varchar, age Int, projet Varchar);`, (err, res) => {
+// client.query(`DROP TABLE utilisateurs, projets;`, (err, res) => {
+//     if(!err){
+//         console.log(res.rows); 
+//     }else{
+//         console.log(err.message); 
+//     }
+//     client.end; 
+// }); 
+
+// client.query(`CREATE TABLE utilisateurs (idUser SERIAL PRIMARY KEY , nomUser Varchar, ageUser Int);`, (err, res) => {
 //     if(!err){
 //         console.log(res.rows); 
 //     }else{
@@ -31,9 +48,34 @@ client.connect();
 // }); 
 
 // client.query(
-//     `INSERT INTO utilisateurs(nom, age, projet) 
+//     `INSERT INTO utilisateurs(nomUser, ageUser) 
 //     VALUES 
-//     ('master', 13, 'UserMind')
+//     ('master', 13), 
+//     ('Lucas', 20)
+//     ;`
+//     , (err, res) => {
+//     if(!err){
+//         console.log(res.rows); 
+//     }else{
+//         console.log(err.message); 
+//     }
+//     client.end; 
+// }); 
+
+// client.query(`CREATE TABLE projets (idProjet SERIAL PRIMARY KEY , nomProjet Varchar, domaineProjet Varchar, idUser Int, FOREIGN KEY (idUser) REFERENCES utilisateurs(idUser));`, (err, res) => {
+//     if(!err){
+//         console.log(res.rows); 
+//     }else{
+//         console.log(err.message); 
+//     }
+//     client.end; 
+// }); 
+
+// client.query(
+//     `INSERT INTO projets(nomProjet, domaineProjet) 
+//     VALUES 
+//     ('Usermind', 'Developpement'), 
+//     ('SudAerien', 'Developpement')
 //     ;`
 //     , (err, res) => {
 //     if(!err){
@@ -54,9 +96,27 @@ client.query(`SELECT * from utilisateurs`, (err, res) => {
     client.end; 
 });  
 
+client.query(`SELECT * from projets`, (err, res) => {
+    if(!err){
+        console.log(res.rows); 
+    }else{
+        console.log(err.message); 
+    }
+    client.end; 
+});  
+
 //  GET
 const getUsers = (req, res) => {
-    client.query('SELECT * FROM utilisateurs ORDER BY projet ASC', (error, results) => {
+    client.query(`SELECT * FROM utilisateurs ;`, (error, results) => {
+      if (error) {
+        throw error
+      }
+      res.status(200).json(results.rows)
+    })
+}
+
+const getProjets = (req, res) => {
+    client.query(`SELECT * FROM projets; `, (error, results) => {
       if (error) {
         throw error
       }
@@ -66,10 +126,21 @@ const getUsers = (req, res) => {
 
 // POST
 const createUser = (req, res) => {
-    const { nom, age, projet } = req.body
+    const { nomUser, ageUser } = req.body
   
-    client.query(`INSERT INTO utilisateurs(nom, age, projet) VALUES ($1, $2, $3)`
-    , [nom, age, projet], (error, results) => {
+    client.query(`INSERT INTO utilisateurs(nomUser, ageUser) VALUES ($1, $2)`
+    , [nomUser, ageUser], (error, results) => {
+      if (error) {
+        throw error
+      }
+    })
+}
+
+const createProjet = (req, res) => {
+    const { nomProjet, domaineProjet } = req.body
+  
+    client.query(`INSERT INTO projets(nomProjet, domaineProjet) VALUES ($1, $2)`
+    , [nomProjet, domaineProjet], (error, results) => {
       if (error) {
         throw error
       }
@@ -78,11 +149,16 @@ const createUser = (req, res) => {
 
 module.exports = {
     getUsers, 
-    createUser
+    getProjets,
+    createUser, 
+    createProjet
 }
 
-app.get('/users', getUsers)
-app.post('/users/new', createUser)
+app.get('/utilisateurs', getUsers)
+app.get('/projets', getProjets)
+
+app.post('/utilisateurs/new', createUser)
+app.post('/projets/new', createProjet)
 
 app.get('/', (req, res) => {
     res.send('Test')
