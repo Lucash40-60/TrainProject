@@ -30,47 +30,60 @@
                     Utilisateurs associés 
                 </label>
                 <select class="border-solid border-black bg-slate-100"
-                    v-model="usersProjets" v-for="(dataU, index) in dataUsers" :key="index"
-                    >
-                    <option>
-                        {{ dataU }}
+                    v-model="usersProjets">
+                    
+                    <option v-for="(dataU, index) in dataUsers" :key="index">
+                        {{ dataU.nomuser }}
                     </option>
                 </select>
             </div>
 
-            <input type="submit" class="btn w-1/5 m-auto rounded-md bg-blue-300" v-on:click="NewData()" value="Envoyer"/>
+            <router-link to="/" v-on:click="NewData(nomProjet, domaineProjet, usersProjets)">
+                <input type="submit" class="btn w-1/5 m-auto rounded-md bg-blue-300" value="Envoyer"/>
+            </router-link>
         </form>
     </div>
 </template>
   
-<script>
+<script setup>
     import axios from 'axios'
-    export default {
-        data() {
-            return {
-                nomProjet: null, 
-                domaineProjet: null, 
-                usersProjets: null
-            };
-        },
+    import {useStore} from 'vuex'; 
+    import { onMounted, ref } from 'vue';
 
-        methods: {
-            NewData() {
-                axios.post('http://localhost:3000/projets/new',{
-                    nomProjet: this.nomProjet, 
-                    domaineProjet: this.domaineProjet, 
-                    usersProjets: this.usersProjets
-                },{
-                    'content-type': 'application/json', 
-                    'Access-Control-Allow-Origin': '*'
-                }).then(function (reponse) {
-                    console.log(reponse);
-                })
-                .catch(function (erreur) {
-                    console.log(erreur);
-                });
-                this.$router.push('/');
-            }
-        }
+    let dataUsers = ref()
+    const store = useStore(); 
+    // data() {
+    //     return {
+    //         nomProjet: null, 
+    //         domaineProjet: null, 
+    //         usersProjets: null
+    //     };
+    // }
+
+    onMounted(() => {
+        store.commit('GetAllProjets'); 
+  
+        axios.get('http://localhost:3000/utilisateurs').then((res) => {
+          dataUsers.value = res.data
+          console.log("tab projets", dataUsers);
+        })
+    })
+
+    function NewData(nomProjet, domaineProjet, usersProjets) {
+        console.log("Data projet envoyées", nomProjet, domaineProjet, usersProjets)
+        axios.post('http://localhost:3000/projets/new',{
+            nomProjet: nomProjet, 
+            domaineProjet: domaineProjet, 
+            usersProjets: usersProjets
+        },{
+            'content-type': 'application/json', 
+            'Access-Control-Allow-Origin': '*'
+        }).then(function (reponse) {
+            console.log(reponse);
+        })
+        .catch(function (erreur) {
+            console.log(erreur);
+        });
     }
+
 </script>
