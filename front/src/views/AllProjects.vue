@@ -1,10 +1,10 @@
 <template>
     <div>
-      <h1 class="mx-0 text-2xl text-center">
+      <h1 class="mx-0 mt-8 text-3xl text-center">
         Tous les projets
       </h1>
       <div class="w-screen flex flex-col justify-evenly mt-6">
-        <div class="w-full h-10 py-3 mb-5 flex flex-row align-middle justify-around bg-slate-100">
+        <div class="w-full text-lg h-12 my-auto flex flex-row justify-around bg-slate-100">
             <span>
                 idProjet
             </span>
@@ -14,17 +14,40 @@
             <span>
                 Domaine Projet
             </span>
-        </div>
-        <div class="w-full m-3 flex flex-row justify-around" v-for="(dataP, index) in dataProjets" :key="index">
             <span>
+                Reunion
+            </span>
+        </div>
+        <div class="w-full mt-6 flex flex-row justify-around text-center" v-for="(dataP, index) in dataProjets" :key="index">
+            <span class="w-1/4">
                 {{dataP.idprojet}}
             </span>
-            <span>
+            <router-link :to="{
+                  path: '/oneproject',
+                  name: 'ProjectSelect',
+                  params: { 
+                      nomprojet: dataP.nomprojet, 
+                      idprojet: dataP.idprojet
+                    },
+                }"
+                class="w-1/4">
                 {{dataP.nomprojet}}
-            </span>
-            <span>
+            </router-link>
+            <span class="w-1/4">
                 {{dataP.domaineprojet}}
             </span>
+            <router-link class="w-1/4 btn py-2 px-2 mx-3 rounded-xl bg-cyan-400"  
+                :to="{
+                  path: '/createreunion',
+                  name: 'CreerReunion',
+                  params: { 
+                      idprojet: dataP.idprojet, 
+                      nomprojet: dataP.nomprojet
+                    },
+                }"
+                >
+                  Creer une réunion
+            </router-link>
         </div>
       </div>
     </div>
@@ -37,12 +60,16 @@
   
     let dataProjets = ref()
     const store = useStore(); 
+    let idprojet = ref(); 
   
     onMounted(() => {
         store.commit('GetAllProjets'); 
   
         axios.get('http://localhost:3000/projets').then((res) => {
           dataProjets.value = res.data
+          idprojet.value = res.data
+          console.log("RESPONSE", res.data)
+          console.log("IDPROJET", idprojet.value)
           console.log("tab projets", dataProjets);
         })
     })
